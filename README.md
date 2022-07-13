@@ -1,2 +1,2 @@
-# quantum-software
-Exploring Quantum computing and Quantum Machine learning through code.
+# quantum-for-engineers
+Explore Quantum Computing and Quantum Machine learning through code.
