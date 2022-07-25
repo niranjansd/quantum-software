@@ -9,4 +9,6 @@
 
 ## Platforms
 
-* [CirQ](platforms/cirq.md)
+* [CirQ](platforms/cirq/README.md)
+  * [BB84](platforms/cirq/bb84.md)
+* [Page 2](platforms/page-2.md)
