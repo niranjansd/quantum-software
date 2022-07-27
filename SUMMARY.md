@@ -7,8 +7,8 @@
 
 * [BB84](algorithms/bb84.md)
 
-## Platforms
+## Code
 
-* [CirQ](platforms/cirq/README.md)
-  * [BB84](platforms/cirq/bb84.md)
-* [Page 2](platforms/page-2.md)
+* [CirQ](code/cirq/README.md)
+  * [BB84](code/cirq/bb84.md)
+* [Page 2](code/page-2.md)
