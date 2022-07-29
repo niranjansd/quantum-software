@@ -1,7 +1,6 @@
 # Table of contents
 
-* [quantum-for-engineers](README.md)
-* [Page 1](page-1.md)
+* [About](README.md)
 
 ## Algorithms
 
@@ -15,5 +14,5 @@
 * [CirQ](platforms/cirq/README.md)
   * [BB84](platforms/cirq/bb84.md)
   * [Bell Inequality](code/cirq/bell-inequality.md)
-* [Qiskit](code/page-2/README.md)
+* [Qiskit](platforms/page-2.md)
   * [Bell Inequality](code/page-2/bell-inequality.md)
