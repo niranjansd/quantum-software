@@ -1,0 +1,105 @@
+# BB84
+## Imports
+import numpy as np
+import cirq
+
+
+## Utility functions
+def bitstring(bits):
+    return ''.join(str(int(b)) for b in bits)
+
+
+class BB84(object):
+
+    def __init__(self, num_qubits=8, repetitions=1, random_seed=200):
+        super().__init__()
+        np.random.seed(random_seed)  # Seed random generator for consistent results
+        self.repetitions = repetitions
+        self.circuits = {}
+
+    def setup_demo(self, num_qubits):
+        self.alice_basis = [np.random.randint(0, 2) for _ in range(num_qubits)]
+        self.alice_state = [np.random.randint(0, 2) for _ in range(num_qubits)]
+        self.bob_basis = [np.random.randint(0, 2) for _ in range(num_qubits)]
+        self.eve_basis = [np.random.randint(0, 2) for _ in range(num_qubits)]
+        self.expected_key = bitstring(
+            [self.alice_state[i] for i in range(num_qubits) if self.alice_basis[i] == self.bob_basis[i]]
+        )
+
+    def make_bb84_circuit(self, num_qubits, sender_basis, receiver_basis, sender_state, name="1"):
+        self.qubits = cirq.LineQubit.range(num_qubits)
+        self.circuits[name] = cirq.Circuit()
+
+        # Sender prepares her qubits
+        sender_enc = []
+        for index, _ in enumerate(sender_basis):
+            if sender_state[index] == 1:
+                sender_enc.append(cirq.X(self.qubits[index]))
+            if sender_basis[index] == 1:
+                sender_enc.append(cirq.H(self.qubits[index]))
+        self.circuits[name].append(sender_enc)
+
+        # Receiver measures the received qubits
+        recv_basis_choice = []
+        for index, rbasis in enumerate(receiver_basis):
+            if rbasis == 1:
+                recv_basis_choice.append(cirq.H(self.qubits[index]))
+        self.circuits[name].append(recv_basis_choice)
+        self.circuits[name].append(cirq.measure_each(*self.qubits))
+
+    def simulate_base_protocol(self, num_qubits=8):
+        self.setup_demo(num_qubits)
+        self.make_bb84_circuit(num_qubits, self.alice_basis, self.bob_basis,
+                               self.alice_state, name="base")
+        result = cirq.Simulator().run(program=self.circuits["base"], repetitions=self.repetitions)
+        result_bitstring = bitstring([int(result.measurements[str(q)]) for q in self.qubits])
+        # Take only qubits where bases match
+        obtained_key = ''.join(
+            [result_bitstring[i] for i in range(num_qubits) if self.alice_basis[i] == self.bob_basis[i]]
+        )
+        print(self.circuits["base"])
+        self.print_results(self.alice_basis, self.bob_basis, self.alice_state,
+                           self.expected_key, obtained_key)
+
+    def simulate_eavesdropped_protocol(self, num_qubits=8):
+        # Eve intercepts the qubits
+        self.setup_demo(num_qubits)
+        self.make_bb84_circuit(num_qubits, self.alice_basis, self.bob_basis,
+                               self.alice_state, name="alice_bob")
+        self.make_bb84_circuit(num_qubits, self.alice_basis, self.eve_basis,
+                               self.alice_state, name="alice_eve")
+
+        # Run simulations
+        result = cirq.Simulator().run(program=self.circuits["alice_eve"],
+                                      repetitions=self.repetitions)
+        eve_state = [int(result.measurements[str(q)]) for q in self.qubits]
+
+        self.make_bb84_circuit(num_qubits, self.eve_basis, self.bob_basis, eve_state, name="eve_bob")
+
+        result = cirq.Simulator().run(program=self.circuits["eve_bob"], repetitions=self.repetitions)
+        result_bitstring = bitstring([int(result.measurements[str(q)]) for q in self.qubits])
+
+        # Take only qubits where bases match
+        obtained_key = ''.join(
+            [result_bitstring[i] for i in range(num_qubits) if self.alice_basis[i] == self.bob_basis[i]]
+        )
+        circuit = self.circuits["alice_eve"] + self.circuits["eve_bob"]
+        print(circuit)
+        self.print_results(self.alice_basis, self.bob_basis, self.alice_state,
+                           self.expected_key, obtained_key)
+
+
+    def print_results(self, alice_basis, bob_basis, alice_state, expected_key, obtained_key):
+        num_qubits = len(alice_basis)
+        basis_match = ''.join(
+            ['X' if alice_basis[i] == bob_basis[i] else '_' for i in range(num_qubits)]
+        )
+        alice_basis_str = "".join(['C' if alice_basis[i] == 0 else "H" for i in range(num_qubits)])
+        bob_basis_str = "".join(['C' if bob_basis[i] == 0 else "H" for i in range(num_qubits)])
+
+        print(f'Alice\'s basis:\t{alice_basis_str}')
+        print(f'Bob\'s basis:\t{bob_basis_str}')
+        print(f'Alice\'s bits:\t{bitstring(alice_state)}')
+        print(f'Bases match::\t{basis_match}')
+        print(f'Expected key:\t{expected_key}')
+        print(f'Actual key:\t{obtained_key}')
