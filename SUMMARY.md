@@ -14,5 +14,5 @@
 * [CirQ](platforms/cirq/README.md)
   * [BB84](platforms/cirq/bb84.md)
   * [Bell Inequality](code/cirq/bell-inequality.md)
-* [Qiskit](platforms/page-2.md)
+* [Qiskit](code/qiskit/README.md)
   * [Bell Inequality](code/page-2/bell-inequality.md)
